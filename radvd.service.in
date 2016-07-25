@@ -1,3 +1,6 @@
+# It's not recommended to modify this file in-place, because it
+# will be overwritten during upgrades.  If you want to customize,
+# the best way is to use the "systemctl edit" command.
 
 [Unit]
 Description=Router advertisement daemon for IPv6
@@ -10,6 +13,24 @@ ExecStartPre=@SBINDIR@/radvd --logmethod stderr_clean --configtest
 ExecStart=@SBINDIR@/radvd --logmethod stderr_clean
 ExecReload=@SBINDIR@/radvd --logmethod stderr_clean --configtest && /bin/kill -HUP $MAINPID
 PIDFile=@PATH_RADVD_PID@
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE  CAP_NET_RAW
+CPUSchedulingPolicy=idle
+
+# Set up a new file system namespace and mounts private /tmp and /var/tmp directories
+# so this service cannot access the global directories and other processes cannot
+# access this service's directories.
+PrivateTmp=yes
+
+PrivateDevices=yes
+
+# Mounts the /usr, /boot, and /etc directories read-only for processes invoked by this unit.
+ProtectSystem=full
+
+# The directories /home, /root and /run/user are made inaccessible and empty for processes
+# invoked by this unit.
+ProtectHome=yes
+
+NoNewPrivileges=yes
 
 [Install]
 WantedBy=multi-user.target
